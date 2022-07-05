@@ -1,6 +1,6 @@
 # ChaosRecipeFilter
 
-Pretty old project from before the chaos recipe tool a lot of people use nowadays was around, but now that I went ahead and made a github, I might as well toss it in here.
+Pretty old project from before the chaos recipe tool a lot of people use nowadays was around. Now that I went ahead and made a proper github account for myself, I might as well toss it in here. Despite it not being as feature rich as the other chaos recipe tool, I still use it since I try to keep my overlays as minimal as possible anyway and the other tool was a bit too overequipped for what I wanted.
 
 
 Updates your filter file to show and highlight whatever items you need to do a chaos recipe with.    
