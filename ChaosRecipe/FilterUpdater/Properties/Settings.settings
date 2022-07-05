@@ -1,0 +1,30 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="FilterUpdater.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="Shape" Type="System.String" Scope="User">
+      <Value Profile="(Default)">UpsideDownHouse</Value>
+    </Setting>
+    <Setting Name="Color" Type="System.String" Scope="User">
+      <Value Profile="(Default)">200 0 0</Value>
+    </Setting>
+    <Setting Name="Path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\Oxi\Documents\My Games\Path of Exile</Value>
+    </Setting>
+    <Setting Name="TopString" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#------------------------------------
+#   [1003] ILVL 86
+#------------------------------------
+</Value>
+    </Setting>
+    <Setting Name="BotString" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#Show  # # # # $type-&gt;decorator-&gt;craftingrare $tier-&gt;raredecoratorilvl75</Value>
+    </Setting>
+    <Setting Name="ShapeColor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Pink</Value>
+    </Setting>
+    <Setting Name="Bitmask" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
