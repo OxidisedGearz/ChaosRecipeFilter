@@ -5,7 +5,8 @@ Pretty old project from before the chaos recipe tool a lot of people use nowaday
 
 Updates your filter file to show and highlight whatever items you need to do a chaos recipe with.    
 Runs the /itemfilter command in game after execution if exactly one filter is being updated.   
--possible to have it look in production_Config.ini for the active filter name rather than using whatever youre working on, but that would require either another setting to know its location or some unsafe assumptions plus it would go unused (at least by myself)      
+-possible to have it look in production_Config.ini for the active filter name rather than using whatever youre working on    
+--would require either another setting to know its location but I left it out since it would go unused (at least by myself)      
 Currently does not look at any stash apis to determine which items are missing, you'll have to click the checkboxes manually.    
 
 
