@@ -5,20 +5,22 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Threading;
+using System.Diagnostics;
 
 namespace FilterUpdater
 {
     public class ActualCode : INotifyPropertyChanged
     {
-        public ActualCode()
-        {
-        }
+        #region constructor
+        public ActualCode() { }
+        #endregion constructor
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        #region commands
         public ICommand SaveCommand
         {
             get { return new DelegateCommand(Save); }
@@ -31,7 +33,9 @@ namespace FilterUpdater
         {
             get { return new DelegateCommand(Browse); }
         }
+        #endregion commands
 
+        #region appearence options
         public ObservableCollection<string> Colors { get; set; } = new ObservableCollection<string> { "Red", "Green", "Blue", "Brown", "White", "Yellow", "Cyan", "Grey", "Orange", "Pink", "Purple" };
 
         public ObservableCollection<string> Shapes { get; set; } = new ObservableCollection<string> { "Circle", "Diamond", "Hexagon", "Square", "Star", "Triangle", "Cross", "Moon", "Raindrop", "Kite", "Pentagon", "House" };
@@ -56,7 +60,9 @@ namespace FilterUpdater
         public string FilterPaths { get; set; } = Properties.Settings.Default.Path;
         public string TopString { get; set; } = Properties.Settings.Default.TopString;
         public string BotString { get; set; } = Properties.Settings.Default.BotString;
+        #endregion appearence options
 
+        #region item type bitmask
         private int bitmask = Properties.Settings.Default.Bitmask;
         public bool Helm
         {
@@ -213,12 +219,155 @@ namespace FilterUpdater
                 }
             }
         }
+        #endregion item type bitmask
 
+        #region input simulation
+        //sniping most of this from https://www.codeproject.com/Articles/5264831/How-to-Send-Inputs-using-Csharp
+        [StructLayout(LayoutKind.Sequential)]
+        private struct KeyboardInput
+        {
+            public ushort wVk;
+            public ushort wScan;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MouseInput
+        {
+            public int dx;
+            public int dy;
+            public uint mouseData;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct HardwareInput
+        {
+            public uint uMsg;
+            public ushort wParamL;
+            public ushort wParamH;
+        }
+        [StructLayout(LayoutKind.Explicit)]
+        private struct InputUnion
+        {
+            [FieldOffset(0)] public MouseInput mi;
+            [FieldOffset(0)] public KeyboardInput ki;
+            [FieldOffset(0)] public HardwareInput hi;
+        }
+        private struct Input
+        {
+            public int type;
+            public InputUnion u;
+        }
+        [Flags]
+        private enum InputType
+        {
+            Mouse = 0,
+            Keyboard = 1,
+            Hardware = 2
+        }
+        [Flags]
+        private enum KeyEventF
+        {
+            KeyDown = 0x0000,
+            ExtendedKey = 0x0001,
+            KeyUp = 0x0002,
+            Unicode = 0x0004,
+            Scancode = 0x0008
+        }
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetMessageExtraInfo();
+
+        private uint SendEnter()
+        {
+            var inputs = new List<Input>();
+            inputs.Add(new Input()
+            {
+                type = (int)InputType.Keyboard,
+                u = new InputUnion
+                {
+                    ki = new KeyboardInput
+                    {
+                        wVk = 0,
+                        wScan = 0x1c,
+                        dwFlags = (uint)(KeyEventF.KeyDown | KeyEventF.Scancode),
+                        dwExtraInfo = GetMessageExtraInfo()
+                    }
+                }
+            });
+            inputs.Add(new Input()
+            {
+                type = (int)InputType.Keyboard,
+                u = new InputUnion
+                {
+                    ki = new KeyboardInput
+                    {
+                        wVk = 0,
+                        wScan = 0x1c,
+                        dwFlags = (uint)(KeyEventF.KeyUp | KeyEventF.Scancode),
+                        dwExtraInfo = GetMessageExtraInfo()
+                    }
+                }
+            });
+            return SendInput((uint)inputs.Count, inputs.ToArray(), Marshal.SizeOf(typeof(Input)));
+        }
+        private uint SendText(string text)
+        {
+            var inputs = new List<Input>();
+            foreach (char c in text)
+            {
+                inputs.Add(new Input()
+                {
+                    type = (int)InputType.Keyboard,
+                    u = new InputUnion
+                    {
+                        ki = new KeyboardInput
+                        {
+                            wVk = 0,
+                            wScan = c,
+                            dwFlags = (uint)(KeyEventF.KeyDown | KeyEventF.Unicode),
+                            dwExtraInfo = GetMessageExtraInfo()
+                        }
+                    }
+                });
+                inputs.Add(new Input()
+                {
+                    type = (int)InputType.Keyboard,
+                    u = new InputUnion
+                    {
+                        ki = new KeyboardInput
+                        {
+                            wVk = 0,
+                            wScan = c,
+                            dwFlags = (uint)(KeyEventF.KeyUp | KeyEventF.Unicode),
+                            dwExtraInfo = GetMessageExtraInfo()
+                        }
+                    }
+                });
+            }
+            return SendInput((uint)inputs.Count, inputs.ToArray(), Marshal.SizeOf(typeof(Input)));
+        }
+
+        #endregion input simulation
+
+        #region window management
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        #endregion window management
+
+        #region execution methods
         private void Execute()
         {
             Properties.Settings.Default.Bitmask = bitmask;
             Properties.Settings.Default.Save();
             string chaosInsert = FormatFilter();
+            string? filterName = null;
             foreach (var untrimmedPath in FilterPaths.Split('\n', StringSplitOptions.RemoveEmptyEntries))
             {
                 var path = untrimmedPath.Trim();
@@ -230,6 +379,14 @@ namespace FilterUpdater
                         MessageBoxButton.OK,
                         MessageBoxImage.Exclamation);
                     continue;
+                }
+                if (filterName == null)
+                {
+                    filterName = Path.GetFileNameWithoutExtension(path);
+                }
+                else
+                {
+                    filterName = string.Empty;
                 }
                 string originalFilter = File.ReadAllText(path);
                 int topIndex = originalFilter.IndexOf(TopString) + TopString.Length;
@@ -252,8 +409,8 @@ namespace FilterUpdater
                 {
                     MessageBox.Show(
                         $"Could not match the bottom string in {path}\n" +
-                        "Please copy the line(s) following where new filters should go\n\n" + 
-                        "Bottom string was:\n" + 
+                        "Please copy the line(s) following where new filters should go\n\n" +
+                        "Bottom string was:\n" +
                         BotString,
                         "Setting Error",
                         MessageBoxButton.OK,
@@ -263,6 +420,19 @@ namespace FilterUpdater
                 string suffix = remaining[botindex..];
                 string newFilter = prefix + chaosInsert + suffix;
                 File.WriteAllText(path, newFilter);
+            }
+            if(!string.IsNullOrEmpty(filterName))
+            {
+                var foundWindow = Process.GetProcessesByName("PathOfExile").FirstOrDefault()?.MainWindowHandle;
+                if (foundWindow is IntPtr poeWind)
+                {
+                    var activeWind = GetForegroundWindow();
+                    SetForegroundWindow(poeWind);
+                    SendEnter();
+                    SendText($"/itemfilter {filterName}");
+                    SendEnter();
+                    SetForegroundWindow(activeWind);
+                }
             }
         }
 
@@ -298,10 +468,6 @@ namespace FilterUpdater
                 FilterPaths = sb.ToString();
             }
             OnPropertyChange(nameof(FilterPaths));
-        }
-        private void OnPropertyChange(string pName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(pName));
         }
 
         private string FormatFilter()
@@ -371,6 +537,14 @@ namespace FilterUpdater
             sb.AppendLine("\tRarity Rare");
             sb.AppendLine("\tIdentified False");
         }
+        #endregion methods
+
+        #region required ui stuff
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChange(string pName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(pName));
+        }
 
         private class DelegateCommand : ICommand
         {
@@ -383,6 +557,6 @@ namespace FilterUpdater
             public void Execute(object? parameter) => a?.Invoke();
             public event EventHandler? CanExecuteChanged;
         }
-
+        #endregion required ui stuff
     }
 }
