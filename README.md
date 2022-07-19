@@ -4,15 +4,16 @@ Pretty old project from before the chaos recipe tool a lot of people use nowaday
 
 
 Updates your filter file to show and highlight whatever items you need to do a chaos recipe with.    
-Currently does not look at any stash apis to determine which items are missing, you'll have to click the checkboxes to set that.   
-Also currently does not run the /filter command in game after execution so you'll also have to click the refresh button in game yourself.   
+Runs the /itemfilter command in game after execution if exactly one filter is being updated.   
+-possible to have it look in production_Config.ini for the active filter name rather than using whatever youre working on, but that would require either another setting to know its location or some unsafe assumptions plus it would go unused (at least by myself)      
+Currently does not look at any stash apis to determine which items are missing, you'll have to click the checkboxes manually.    
 
 
 ## To Use
 -Build project and run it.    
 -Click on the settings tab.    
 -Input your border color, minimap color, and minimap icon preferences at the top.    
--Input the location of the filter file you want to use.    
+-Input the location of the filter file(s) you want to be modifying.    
 -Input the text in the filter that is right above where the recipe filter lines should be inserted.    
 --previously this is automated, but neversink alters the filter layout often enough that I found manual entry easier in the end since it was a once per league thing anyway.    
 -Input the text in the filter that is right below where the recipe filter lines should be inserted.   
@@ -22,4 +23,3 @@ Also currently does not run the /filter command in game after execution so you'l
 -Check the <75 box if you want to make sure these items won't make a regal orb.   
 --only one item per recipe needs to be less than ilvl 75 to get chaos.   
 -Execute.   
--Reload your filter in game.   
