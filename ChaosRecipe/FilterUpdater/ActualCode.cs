@@ -428,9 +428,11 @@ namespace FilterUpdater
                 {
                     var activeWind = GetForegroundWindow();
                     SetForegroundWindow(poeWind);
+                    Thread.Sleep(50);
                     SendEnter();
                     SendText($"/itemfilter {filterName}");
                     SendEnter();
+                    Thread.Sleep(50);
                     SetForegroundWindow(activeWind);
                 }
             }
